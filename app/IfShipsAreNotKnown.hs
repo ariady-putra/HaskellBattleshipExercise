@@ -231,7 +231,9 @@ play n m shoot board = do
       mapM_
         ( putStrLn
             . ( \(x, y, result) ->
-                  "I shot (row:" ++ show (x + 1) ++ ", col:" ++ show (y + 1) ++ ") - " ++ show result
+                  let row = x + 1
+                      col = y + 1
+                   in "I shot (row:" ++ show row ++ ", col:" ++ show col ++ ") - " ++ show result
               )
         )
         shotHistory
@@ -256,7 +258,7 @@ askShipLengths = do
   if all (\ship -> all (\f -> f ship) [all isDigit, not . all (== '0')]) ships
     then return $ map read ships
     else do
-      putStr "Invalid input! Make sure there's' no zero-length ship."
+      putStr "Invalid input! Make sure there's no zero-length ship."
       putStr " "
       askShipLengths
 
