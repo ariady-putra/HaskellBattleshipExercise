@@ -71,6 +71,45 @@ testUpdateTiles =
 
 type ShootFn = Int -> Int -> State Board ShootResult
 
+calcShipLength :: (Int, Int) -> [[Tile]] -> Int
+calcShipLength (x, y) tiles =
+  let w = length $ tiles !! x
+      h = length tiles
+      ns n count
+        | n < 0 || (not . isShip) (tiles !! n !! y) = count
+        | otherwise = 1 + ns (n - 1) count
+      ss n count
+        | n >= h || (not . isShip) (tiles !! n !! y) = count
+        | otherwise = 1 + ss (n + 1) count
+      ws m count
+        | m < 0 || (not . isShip) (tiles !! x !! m) = count
+        | otherwise = 1 + ws (m - 1) count
+      es m count
+        | m >= w || (not . isShip) (tiles !! x !! m) = count
+        | otherwise = 1 + es (m + 1) count
+      nCount = ns (x - 1) 0
+      sCount = ss (x + 1) 0
+      wCount = ws (y - 1) 0
+      eCount = es (y + 1) 0
+   in if isShip (tiles !! x !! y) then 1 + nCount + sCount + wCount + eCount else 0
+
+testCalcShipLength x y = do
+  let toTiles = map (\t -> Tile (t == 'X') False)
+  let tiles =
+        map
+          toTiles
+          [ "XXXX_",
+            "_____",
+            "X_XX_",
+            "X____",
+            "X_X__"
+          ]
+  print $ calcShipLength (x, y) tiles
+
+removeShip :: Int -> [Int] -> [Int]
+removeShip _ [] = []
+removeShip shipLength (l : ls) = if l == shipLength then ls else l : removeShip shipLength ls
+
 calcTryCoordinates :: (Int, Int) -> [[Tile]] -> ShotHistory -> ShootStrategy
 calcTryCoordinates (x, y) tiles history =
   let w = length $ tiles !! x
@@ -114,8 +153,10 @@ shoot x y = do
 
   let tiles' = updateTiles x y currShotResult tiles
 
-  -- TODO: ships' = if HitSunk then deduce which ship to pop from the list
-  let ships' = ships
+  let ships' =
+        if currShotResult == HitSunk
+          then removeShip (calcShipLength (x, y) tiles') ships
+          else ships
 
   let shotHistory' = shotHistory ++ [(x, y, currShotResult)]
 
