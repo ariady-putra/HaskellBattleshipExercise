@@ -167,11 +167,22 @@ shoot x y = do
 
   let nextShotStrategy' =
         case (currShotResult, nextShotStrategy) of
+          -- Hit? Then keep hitting
           (Hit, Try (_ : next)) -> Try next
+          -- Hit, but no prediction yet? Then predict
           (Hit, _) -> calcTryCoordinates (x, y) tiles shotHistory'
-          (_, Try (_ : next)) ->
-            let (stopDirection, _, _) = head next
-             in Try (filter (\(currDirection, _, _) -> currDirection /= stopDirection) next)
+          -- Not hit, but there are predictions? Then redirect shots
+          (_, Try ((stopDirection, _, _) : next)) ->
+            let coordinates =
+                  filter
+                    ( \(currDirection, _, _) ->
+                        currDirection /= stopDirection
+                    )
+                    next
+             in if null coordinates
+                  then Random
+                  else Try coordinates
+          -- Otherwise, shoot randomly
           (_, _) -> Random
 
   put $ Board tiles' ships' shotHistory' currShotResult nextShotStrategy'
@@ -252,5 +263,5 @@ main = do
   -- Row 2: _ _ _ _ _
   -- Row 3: X _ X X _
   -- Row 4: X _ _ _ _
-  -- Row 5: X _ X _ _
-  sinkAllShips 5 5 [1 .. 4] shoot
+  -- Row 5: X _ X X X
+  sinkAllShips 5 5 [4, 3, 2, 3] shoot
