@@ -231,7 +231,7 @@ play n m shoot board = do
       mapM_
         ( putStrLn
             . ( \(x, y, result) ->
-                  "I shot (row:" ++ show x ++ ", col:" ++ show x ++ ") - " ++ show result
+                  "I shot (row:" ++ show (x + 1) ++ ", col:" ++ show (y + 1) ++ ") - " ++ show result
               )
         )
         shotHistory
