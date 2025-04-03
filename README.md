@@ -21,7 +21,7 @@ cabal repl
 main
 ```
 
-## Example Gameplay
+## Gameplay Example
 
 ### Intro
 
@@ -47,7 +47,7 @@ I shot (row:1, col:2) what is the status? [0 - Miss, 1 - Hit, 2 - HitSunk]
 
 ```
 
-### Mid game
+### Mid Game
 
 ```
 I shot (row:1, col:2) what is the status? [0 - Miss, 1 - Hit, 2 - HitSunk]
