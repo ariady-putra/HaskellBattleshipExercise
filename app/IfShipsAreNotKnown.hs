@@ -91,7 +91,9 @@ calcShipLength (x, y) tiles =
       sCount = ss (x + 1) 0
       wCount = ws (y - 1) 0
       eCount = es (y + 1) 0
-   in if isShip (tiles !! x !! y) then 1 + nCount + sCount + wCount + eCount else 0
+   in if isShip (tiles !! x !! y)
+        then 1 + nCount + sCount + wCount + eCount
+        else 0
 
 testCalcShipLength x y = do
   let toTiles = map (\t -> Tile (t == 'X') False)
@@ -108,7 +110,10 @@ testCalcShipLength x y = do
 
 removeShip :: Int -> [Int] -> [Int]
 removeShip _ [] = []
-removeShip shipLength (l : ls) = if l == shipLength then ls else l : removeShip shipLength ls
+removeShip shipLength (l : ls) =
+  if l == shipLength
+    then ls
+    else l : removeShip shipLength ls
 
 calcTryCoordinates :: (Int, Int) -> [[Tile]] -> ShotHistory -> ShootStrategy
 calcTryCoordinates (x, y) tiles history =
@@ -161,17 +166,13 @@ shoot x y = do
   let shotHistory' = shotHistory ++ [(x, y, currShotResult)]
 
   let nextShotStrategy' =
-        case nextShotStrategy of
-          Try (_ : next) ->
-            if currShotResult == Hit
-              then Try next
-              else
-                let (stopDirection, _, _) = head next
-                 in Try (filter (\(currDirection, _, _) -> currDirection /= stopDirection) next)
-          _ ->
-            if currShotResult == Hit
-              then calcTryCoordinates (x, y) tiles shotHistory'
-              else Random
+        case (currShotResult, nextShotStrategy) of
+          (Hit, Try (_ : next)) -> Try next
+          (Hit, _) -> calcTryCoordinates (x, y) tiles shotHistory'
+          (_, Try (_ : next)) ->
+            let (stopDirection, _, _) = head next
+             in Try (filter (\(currDirection, _, _) -> currDirection /= stopDirection) next)
+          (_, _) -> Random
 
   put $ Board tiles' ships' shotHistory' currShotResult nextShotStrategy'
 
@@ -214,7 +215,13 @@ play n m shoot board = do
   case ships of
     [] -> do
       putStrLn "I should have sunk all your ships:"
-      mapM_ print shotHistory
+      mapM_
+        ( putStrLn
+            . ( \(x, y, result) ->
+                  "I shot (row:" ++ show x ++ ", col:" ++ show x ++ ") - " ++ show result
+              )
+        )
+        shotHistory
       putStrLn "GAME OVER"
     _ -> do
       (x, y) <- nextShot n m shotHistory nextShotStrategy
