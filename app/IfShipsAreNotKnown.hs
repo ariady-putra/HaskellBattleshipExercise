@@ -1,7 +1,9 @@
 module IfShipsAreNotKnown where
 
+import Control.Concurrent (threadDelay)
 import Control.Monad (forM_)
 import Control.Monad.Trans.State.Lazy (State, execState, get, put)
+import Data.Char (isDigit)
 import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import System.IO (stdin, stdout)
 import System.Random (randomRIO)
@@ -246,6 +248,37 @@ sinkAllShips n m shipLengths shoot = do
   let board = mkBoard n m shipLengths
   play n m shoot board
 
+askShipLengths :: IO [Int]
+askShipLengths = do
+  putStrLn "Tell me the lengths of the ships! For example: 4 3 2 3"
+  ships <- words <$> getLine
+  putStrLn ""
+  if all (\ship -> all (\f -> f ship) [all isDigit, not . all (== '0')]) ships
+    then return $ map read ships
+    else do
+      putStr "Invalid input! Make sure there's' no zero-length ship."
+      putStr " "
+      askShipLengths
+
+askBoardSize :: [Int] -> IO (Int, Int)
+askBoardSize shipLengths = do
+  putStrLn "Tell me the size of the board! (N x M), for example: 5 5"
+  size <- words <$> getLine
+  putStrLn ""
+
+  let longestShip = foldr max 0 shipLengths
+  let shipCount = length shipLengths
+  let minDimension = max longestShip shipCount
+
+  if 2 == length size && all ((>= minDimension) . read) size
+    then do
+      let [x, y] = map read size
+      return (x, y)
+    else do
+      putStr "Invalid input! Make sure the board can contain all ships."
+      putStr " "
+      askBoardSize shipLengths
+
 main :: IO ()
 main = do
   hSetBuffering stdin NoBuffering
@@ -255,7 +288,19 @@ main = do
   putStrLn "| Welcome to Haskell-Battleship Game |"
   putStrLn "+------------------------------------+"
   putStrLn ""
-  putStrLn "TODO: Prompt user for board configurations"
+
+  shipLengths <- askShipLengths
+  (n, m) <- askBoardSize shipLengths
+
+  putStrLn "Now, arrange the ships secretly. I'll give you 5 seconds, and then I'll start shooting!"
+  forM_
+    (reverse [1 .. 5])
+    ( \t -> do
+        threadDelay 500000
+        putStrLn $ show t ++ "..."
+        threadDelay 500000
+    )
+  putStrLn ""
 
   -- For example, 5x5 board with 1..4 ships with this secret arrangement:
   -- Col  : 1 2 3 4 5
@@ -264,4 +309,6 @@ main = do
   -- Row 3: X _ X X _
   -- Row 4: X _ _ _ _
   -- Row 5: X _ X X X
-  sinkAllShips 5 5 [4, 3, 2, 3] shoot
+  -- sinkAllShips 5 5 [4, 3, 2, 3] shoot
+
+  sinkAllShips n m shipLengths shoot
