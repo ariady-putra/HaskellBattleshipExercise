@@ -105,7 +105,7 @@ testCalcTryCoordinates = do
             "X____",
             "X_X__"
           ]
-  let Try coordinates = calcTryCoordinates (2, 2) tiles [(2, 3, Miss)]
+  let Try coordinates = calcTryCoordinates (2, 3) tiles [(4, 3, Miss)]
   mapM_ print coordinates
 
 shoot :: ShootFn
