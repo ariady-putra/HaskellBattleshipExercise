@@ -1,4 +1,4 @@
-module IfShipsAreNotKnown where
+module IfShipsAreNotKnown (main) where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (forM_)

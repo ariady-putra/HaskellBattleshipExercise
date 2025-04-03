@@ -1,4 +1,8 @@
+{-# LANGUAGE ImportQualifiedPost #-}
+
 module Main where
 
+import IfShipsAreNotKnown qualified
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = IfShipsAreNotKnown.main
